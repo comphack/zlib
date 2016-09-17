@@ -4,14 +4,6 @@ set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
 
 project(zlib C)
 
-if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" )
-  set( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MTd" )
-  set( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd" )
-
-  set( CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /MT" )
-  set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT" )
-endif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" )
-
 set(VERSION "1.2.8")
 
 option(ASM686 "Enable building i686 assembly implementation")
@@ -198,6 +190,14 @@ if(BUILD_SHARED_LIBS)
     set_target_properties(zlib PROPERTIES SOVERSION 1)
 endif()
 
+if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" )
+  set( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MTd" )
+  set( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd" )
+
+  set( CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /MT" )
+  set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT" )
+endif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" )
+
 add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
 
 if(NOT CYGWIN AND BUILD_SHARED_LIBS)
@@ -247,43 +247,46 @@ endif()
 # Example binaries
 #============================================================================
 
-add_executable(example test/example.c)
+if(NOT SKIP_BUILD_EXAMPLES)
+  add_executable(example test/example.c)
 
-if(BUILD_SHARED_LIBS)
-    target_link_libraries(example zlib)
-else()
-    target_link_libraries(example zlibstatic)
+  if(BUILD_SHARED_LIBS)
+      target_link_libraries(example zlib)
+  else()
+      target_link_libraries(example zlibstatic)
+  endif()
+
+  add_test(example example)
+
+  add_executable(minigzip test/minigzip.c)
+
+  if(BUILD_SHARED_LIBS)
+      target_link_libraries(minigzip zlib)
+  else()
+      target_link_libraries(minigzip zlibstatic)
+  endif()
+
+  if(HAVE_OFF64_T)
+      add_executable(example64 test/example.c)
+
+      if(BUILD_SHARED_LIBS)
+          target_link_libraries(example64 zlib)
+      else()
+          target_link_libraries(example64 zlibstatic)
+      endif()
+
+      set_target_properties(example64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
+      add_test(example64 example64)
+
+      add_executable(minigzip64 test/minigzip.c)
+
+      if(BUILD_SHARED_LIBS)
+          target_link_libraries(minigzip64 zlib)
+      else()
+          target_link_libraries(minigzip64 zlibstatic)
+      endif()
+
+      set_target_properties(minigzip64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
+  endif()
 endif()
 
-add_test(example example)
-
-add_executable(minigzip test/minigzip.c)
-
-if(BUILD_SHARED_LIBS)
-    target_link_libraries(minigzip zlib)
-else()
-    target_link_libraries(minigzip zlibstatic)
-endif()
-
-if(HAVE_OFF64_T)
-    add_executable(example64 test/example.c)
-
-    if(BUILD_SHARED_LIBS)
-        target_link_libraries(example64 zlib)
-    else()
-        target_link_libraries(example64 zlibstatic)
-    endif()
-
-    set_target_properties(example64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
-    add_test(example64 example64)
-
-    add_executable(minigzip64 test/minigzip.c)
-
-    if(BUILD_SHARED_LIBS)
-        target_link_libraries(minigzip64 zlib)
-    else()
-        target_link_libraries(minigzip64 zlibstatic)
-    endif()
-
-    set_target_properties(minigzip64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
-endif()
