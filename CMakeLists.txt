@@ -9,6 +9,8 @@ if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" )
   set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT" )
 endif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" )
 
+MESSAGE("Flags? ${CMAKE_C_FLAGS_DEBUG}")
+
 project(zlib C)
 
 set(VERSION "1.2.8")
@@ -255,3 +257,5 @@ if(HAVE_OFF64_T)
     target_link_libraries(minigzip64 zlib)
     set_target_properties(minigzip64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
 endif()
+
+MESSAGE("Flags? ${CMAKE_C_FLAGS_DEBUG}")
